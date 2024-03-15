@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 from config import get_cfg
 from trainer import Trainer
+from utils import TubeMaskingGenerator
 
 def main():
 
@@ -26,12 +27,14 @@ def main():
     cfg.ebd_d = 3
     cfg.gcn_d = 5
     cfg.n_classes = 1
+    cfg.mask_ratio = 0.50
 
     cfg.state_dict_path = ''
 
     logging.set_verbosity(logging.INFO)
     cfg.device = pt.device(f'cuda:{cfg.device_idx}' if pt.cuda.is_available() else 'cpu')
-    trainer = Trainer(cfg)
+    masking_generator = TubeMaskingGenerator((cfg.T, cfg.n_neurons), cfg.mask_ratio)
+    trainer = Trainer(cfg, masking_generator)
     trainer.train()
 
 if __name__  == '__main__':

@@ -4,6 +4,7 @@ from absl import logging
 import torch as pt
 import torch.nn.functional as F
 import numpy as np
+from tqdm import trange
 
 from config import get_cfg
 from dbgs_learner import DBGSLearner
@@ -16,7 +17,7 @@ logging.set_verbosity(logging.INFO)
 class Trainer():
 
     def __init__(self,
-                 cfg: Mapping[str, Any]) -> None:
+                 cfg: Mapping[str, Any], masking_generator) -> None:
 
         """
         Train dbgsl
@@ -26,6 +27,7 @@ class Trainer():
         """
 
         self.cfg = cfg
+        self.masking_generator = masking_generator
         self.cfg.t_repetition = get_t_repetition(cfg)
         self.model = DBGSLearner(cfg)
         if os.path.exists(cfg.state_dict_path):
@@ -39,14 +41,23 @@ class Trainer():
         """
 
         self.optimizer.zero_grad()
-        target = pt.rand(self.cfg.batch_size, 1)
+        # target = pt.rand(self.cfg.batch_size, 1)
         data_path = '/home/matteoc/graphs-nn/data/hcp/raw'
         file_name = '100206_0.npy'
         file_path = os.path.join(data_path, file_name)
         x = np.load(file_path)[:, :self.cfg.T]
+        tube_mask = self.masking_generator()
+        shuffled = np.random.permutation(tube_mask.reshape(x.T.shape).T)
+        masked_data = x * shuffled  
         x = pt.tensor(x.reshape(1, x.shape[0], x.shape[1]))
-        out = self.model(x)
-        loss = F.binary_cross_entropy(out, target)
+        x = x.float()
+        masked_data = pt.tensor(masked_data.reshape(1, masked_data.shape[0], masked_data.shape[1])) 
+        out = self.model(masked_data)   # out = self.model(masked_data)
+        out = out.float()
+        # print("NAN --> ", pt.isnan(out))
+        instance_loss = pt.nn.MSELoss()
+        loss = instance_loss(out, x)
+        # loss = pt.nn.MSELoss(out, x)
         loss.backward()
         self.optimizer.step()
 
@@ -62,7 +73,7 @@ class Trainer():
         self.model.train()
         losses = []
 
-        for t in range(self.cfg.n_episodes):
+        for t in trange(self.cfg.n_episodes):
 
             loss = self.train_step()
             losses.append(loss.item())

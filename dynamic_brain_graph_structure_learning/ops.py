@@ -25,7 +25,10 @@ def get_node_features(x_split: pt.Tensor) -> pt.Tensor:
     x_split_avg = pt.mean(x_split, -1, keepdim=True)
     x_split_std = pt.std(x_split, -1, keepdim=True)
     x_split_cov = pt.matmul(x_split - x_split_avg, pt.transpose(x_split - x_split_avg, 2, 3))
-    node_features = x_split_cov/pt.matmul(x_split_std, pt.transpose(x_split_std, 2, 3))
+    x_split_den = pt.matmul(x_split_std, pt.transpose(x_split_std, 2, 3))
+    node_features = x_split_cov/x_split_den
+    node_feature_nans = pt.isnan(node_features)
+    node_features[node_feature_nans] = pt.zeros(node_features[node_feature_nans].shape)  
     return node_features
 
 class InceptionTC(pt.nn.Module):

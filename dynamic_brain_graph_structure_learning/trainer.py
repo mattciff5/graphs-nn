@@ -57,7 +57,8 @@ class Trainer():
         # print("NAN --> ", pt.isnan(out))
         instance_loss = pt.nn.MSELoss()
         loss = instance_loss(out, x)
-        # loss = pt.nn.MSELoss(out, x)
+        if loss < 100: 
+            pt.save(out, '/home/matteoc/graphs-nn/data/pred_high_high_ratio_100206_0.pt')
         loss.backward()
         self.optimizer.step()
 

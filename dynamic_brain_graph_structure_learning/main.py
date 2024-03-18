@@ -27,7 +27,7 @@ def main():
     cfg.ebd_d = 3
     cfg.gcn_d = 5
     cfg.n_classes = 1
-    cfg.mask_ratio = 0.50
+    cfg.mask_ratio = 0.90
 
     cfg.state_dict_path = ''
 

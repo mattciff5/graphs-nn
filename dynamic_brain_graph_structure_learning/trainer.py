@@ -52,13 +52,14 @@ class Trainer():
         x = pt.tensor(x.reshape(1, x.shape[0], x.shape[1]))
         x = x.float()
         masked_data = pt.tensor(masked_data.reshape(1, masked_data.shape[0], masked_data.shape[1])) 
-        out = self.model(masked_data)   # out = self.model(masked_data)
+        out, adj_latent = self.model(masked_data)   # out = self.model(masked_data)
         out = out.float()
         # print("NAN --> ", pt.isnan(out))
         instance_loss = pt.nn.MSELoss()
         loss = instance_loss(out, x)
         if loss < 100: 
-            pt.save(out, '/home/matteoc/graphs-nn/data/pred_high_high_ratio_100206_0.pt')
+            # pt.save(out, '/home/matteoc/graphs-nn/data/pred_ratio_100206_0.pt')
+            pt.save(adj_latent, '/home/matteoc/graphs-nn/data/sparse_adj_ratio_100206_0.pt')
         loss.backward()
         self.optimizer.step()
 

@@ -44,4 +44,4 @@ class DBGSLearner(pt.nn.Module):
         out = self.mlp(out)
         # Reshape to original input dimensions
         out = out.view(-1, self.cfg.n_neurons, 490)
-        return out
+        return out, sparse_adjacency
